@@ -48,7 +48,7 @@ contract ibDUSDLendingService {
     }
 
     function UserShares(address user) external view returns (uint256) {
-        return _dusdLendingAdapter.GetIBDUSDContractBalance(user);
+        return _dusdLendingAdapter.GetIBDUSDBalance(user);
     }
 
     function GetDUSDLendingAdapterAddress() external view returns (address) {
@@ -57,5 +57,10 @@ contract ibDUSDLendingService {
     function GetPricePerFullShare() external view returns (uint){
         
         return _dusdLendingAdapter.GetPricePerFullShare();
+    }
+
+      modifier onlyOwner() {
+        require(_owner == msg.sender, "Only owner can make this call");
+        _;
     }
 }
