@@ -1,34 +1,37 @@
-pragma solidity ^0.6.6;
+pragma solidity 0.6.6;
 
 import "./IibDUSD.sol";
 import "./SafeMath.sol";
 import "./OwnableService.sol";
+import "./ReentrancyGuard.sol";
+import "./SafeERC20.sol";
 
 
 
-contract ibDUSDLendingAdapter is OwnableService{
+contract ibDUSDLendingAdapter is OwnableService, ReentrancyGuard{
     
     using SafeMath for uint256;
 
-     IibDUSD _ibDusd;
+    using SafeERC20 for IibDUSD;
 
-     IERC20 _dusd;
+    using SafeERC20 for IERC20;
+
+    IibDUSD _ibDusd;
+
+    IERC20 _dusd;
 
      constructor(address payable serviceContract) public OwnableService(serviceContract){
-        _ibDusd = IibDUSD(0x42600c4f6d84Aa4D246a3957994da411FA8A4E1c); // interest-bearing DUSD smart contract address Main Network
+
+         // https://github.com/defidollar/defidollar-core/tree/master/contracts/stream
+
+        _ibDusd = IibDUSD(0x42600c4f6d84Aa4D246a3957994da411FA8A4E1c); // interest-bearing DUSD ( shares ) smart contract address Main Network
         _dusd = IERC20(0x5BC25f649fc4e26069dDF4cF4010F9f706c23831); // DUSD address Main Network
         
     }
-    
-    // // IibDUSD _ibDusd = IibDUSD(0x24698159aE4a46945f014D250089E1156ebce6b5); // interest-bearing DUSD smart contract address KOVAN Network
-    // IibDUSD _ibDusd = IibDUSD(0x42600c4f6d84Aa4D246a3957994da411FA8A4E1c); // interest-bearing DUSD smart contract address Main Network
-    
-    // // IERC20 _dusd = IERC20(0xbA125322A44Aa62b6B621257C6120d39bEA4d6de); // DUSD address KOVAN Network
-    // IERC20 _dusd = IERC20(0x5BC25f649fc4e26069dDF4cF4010F9f706c23831); // DUSD address Main Network
 
     mapping(address => uint256) userDUSDDeposits;
 
-    function GetPricePerFullShare() external view returns (uint){
+    function GetPricePerFullShare() external view returns (uint256){
         
         return _ibDusd.getPricePerFullShare();
     }
@@ -55,6 +58,7 @@ contract ibDUSDLendingAdapter is OwnableService{
     */
     function save(uint256 amount, address account)
         public
+        nonReentrant
         onlyOwnerAndServiceContract
     {
         //  Give allowance that a spender can spend on behalf of the owner. NOTE: This approve function has to be called from outside this smart contract because if you call
@@ -67,7 +71,7 @@ contract ibDUSDLendingAdapter is OwnableService{
         //  await daiContract.methods.approve("recipient(in our case, this smart contract address)",1000000).send({from: "wallet address with DAI"});
 
         //  Transfer DAI from the account address to this smart contract address
-        _dusd.transferFrom(account, address(this), amount);
+        _dusd.safeTransferFrom(account, address(this), amount);
 
         //  This gives the yDAI contract approval to invest our DAI
         _save(amount, account);
@@ -96,6 +100,7 @@ contract ibDUSDLendingAdapter is OwnableService{
 
     function Withdraw(uint256 amount, address owner)
         public
+        nonReentrant
         onlyOwnerAndServiceContract
     {
         //  To withdraw our DUSD amount, the amount argument is in DUSD but the withdraw function of the IBDUSD expects amount in IBDUSD
@@ -104,7 +109,7 @@ contract ibDUSDLendingAdapter is OwnableService{
         uint256 balanceShares = _ibDusd.balanceOf(owner);
 
         //  transfer ibDusd shares From owner to this contract address
-        _ibDusd.transferFrom(owner, address(this), balanceShares);
+        _ibDusd.safeTransferFrom(owner, address(this), balanceShares);
 
         //  We now call the withdraw function to withdraw the total DUSD we have. This withdrawal is sent to this smart contract
         _withdrawBySharesAndAmount(owner,balanceShares,amount);
@@ -123,6 +128,7 @@ contract ibDUSDLendingAdapter is OwnableService{
         address owner,
         uint256 sharesAmount
     ) public
+    nonReentrant
     onlyOwnerAndServiceContract
     {
            //  To withdraw our DAI amount, the amount argument is in DAI but the withdraw function of the yDAI expects amount in yDAI token
@@ -130,7 +136,7 @@ contract ibDUSDLendingAdapter is OwnableService{
         uint256 balanceShares = sharesAmount;
 
         //  transfer _ibDusd From owner to this contract address
-        _ibDusd.transferFrom(owner, address(this), balanceShares);
+        _ibDusd.safeTransferFrom(owner, address(this), balanceShares);
 
         //  We now call the withdraw function to withdraw the total DUSD we have. This withdrawal is sent to this smart contract
         _withdrawBySharesAndAmount(owner,balanceShares,amount);
@@ -149,12 +155,13 @@ contract ibDUSDLendingAdapter is OwnableService{
     */
     function WithdrawBySharesOnly(address owner, uint256 sharesAmount)
         public
+        nonReentrant
         onlyOwnerAndServiceContract
     {
         uint256 balanceShares = sharesAmount;
 
         //  transfer _ibDusd shares From owner to this contract address
-        _ibDusd.transferFrom(owner, address(this), balanceShares);
+        _ibDusd.safeTransferFrom(owner, address(this), balanceShares);
 
         //  We now call the withdraw function to withdraw the total DAI we have. This withdrawal is sent to this smart contract
         _withdrawBySharesOnly(owner,balanceShares);
@@ -175,7 +182,7 @@ contract ibDUSDLendingAdapter is OwnableService{
         uint256 shares = _ibDusd.balanceOf(address(this));
 
         //  transfer the _ibDusd shares to the user's address
-        _ibDusd.transfer(account, shares);
+        _ibDusd.safeTransfer(account, shares);
 
         //  add deposited dai to userDaiDeposits mapping
         userDUSDDeposits[account] = userDUSDDeposits[account].add(amount);
@@ -189,7 +196,7 @@ contract ibDUSDLendingAdapter is OwnableService{
         uint256 contractDUSDBalance = _dusd.balanceOf(address(this));
 
         //  Now all the DAI we have are in the smart contract wallet, we can now transfer the total amount to the recipient
-        _dusd.transfer(owner, contractDUSDBalance);
+        _dusd.safeTransfer(owner, contractDUSDBalance);
 
         //   remove withdrawn dai of this owner from userDaiDeposits mapping
         if (userDUSDDeposits[owner] >= contractDUSDBalance) {
@@ -207,7 +214,7 @@ contract ibDUSDLendingAdapter is OwnableService{
         _ibDusd.withdraw(balanceShares);
 
         //  Now all the DUSD we have are in the smart contract wallet, we can now transfer the specified amount to a recipient of our choice
-        _dusd.transfer(owner, amount);
+        _dusd.safeTransfer(owner, amount);
         
 
         //   remove withdrawn DUSD of this owner from userDaiDeposits mapping

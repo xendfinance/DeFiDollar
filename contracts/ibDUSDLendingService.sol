@@ -1,4 +1,4 @@
-pragma solidity ^0.6.6;
+pragma solidity 0.6.6;
 
 import "./ibDUSDLendingAdapter.sol";
 
@@ -12,11 +12,11 @@ contract ibDUSDLendingService {
         _owner = msg.sender;
     }
 
-    function transferOwnership(address account) external onlyOwner() {
+    function TransferOwnership(address account) external onlyOwner() {
         if (_owner != address(0)) _owner = account;
     }
 
-    function updateAdapter(address adapterAddress) external onlyOwner() {
+    function UpdateAdapter(address adapterAddress) external onlyOwner() {
         _dusdLendingAdapter = ibDUSDLendingAdapter(adapterAddress);
     }
 
