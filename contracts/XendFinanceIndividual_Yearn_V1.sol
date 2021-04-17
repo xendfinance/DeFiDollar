@@ -68,7 +68,7 @@ contract XendFinanceIndividual_Yearn_V1 is
     
   
 
-    IDUSDlendingService daiLendingService;
+    IDUSDLendingService daiLendingService;
     IERC20 stakedToken;      //  BEP20 - ForTube BUSD Testnet TODO: change to live when moving to mainnet 
     IibDUSD derivativeToken;   //  BEP20 - fBUSD Testnet TODO: change to mainnet
     IClientRecord clientRecordStorage;
@@ -106,7 +106,7 @@ contract XendFinanceIndividual_Yearn_V1 is
         address treasuryAddress,
         address xendTokenAddress
     ) public {
-        daiLendingService = IDUSDlendingService(daiLendingServiceAddress);
+        daiLendingService = IDUSDLendingService(daiLendingServiceAddress);
         stakedToken = IERC20(tokenAddress);
         TokenAddress = tokenAddress;
         clientRecordStorage = IClientRecord(clientRecordStorageAddress);
@@ -161,7 +161,7 @@ contract XendFinanceIndividual_Yearn_V1 is
     }
     
     function getAdapterAddress() external  {
-        DaiLendingAdapterAddress = daiLendingService.GetDaiLendingAdapterAddress();
+        DaiLendingAdapterAddress = daiLendingService.GetDUSDLendingAdapterAddress();
     }
 
     function getClientRecord(address depositor)
@@ -331,7 +331,7 @@ contract XendFinanceIndividual_Yearn_V1 is
     
     function withdrawByShares(uint256 derivativeAmount) external {
         
-        DaiLendingAdapterAddress = daiLendingService.GetDaiLendingAdapterAddress();
+        DaiLendingAdapterAddress = daiLendingService.GetDUSDLendingAdapterAddress();
         
         derivativeToken.approve(DaiLendingAdapterAddress, derivativeAmount);
         
@@ -345,7 +345,7 @@ contract XendFinanceIndividual_Yearn_V1 is
 
         uint256 balanceBeforeWithdraw = stakedToken.balanceOf(address(this));
         
-        DaiLendingAdapterAddress = daiLendingService.GetDaiLendingAdapterAddress();
+        DaiLendingAdapterAddress = daiLendingService.GetDUSDLendingAdapterAddress();
 
          bool isApprovalSuccessful = derivativeToken.approve(DaiLendingAdapterAddress,derivativeAmount);
          
@@ -538,7 +538,7 @@ contract XendFinanceIndividual_Yearn_V1 is
 
         uint256 balanceBeforeDeposit = derivativeToken.balanceOf(address(this));
         
-        DaiLendingAdapterAddress = daiLendingService.GetDaiLendingAdapterAddress();
+        DaiLendingAdapterAddress = daiLendingService.GetDUSDLendingAdapterAddress();
 
          stakedToken.approve(DaiLendingAdapterAddress, amountTransferrable);
 
@@ -599,7 +599,7 @@ contract XendFinanceIndividual_Yearn_V1 is
 
         uint256 balanceBeforeWithdraw = stakedToken.balanceOf(address(this));
         
-        DaiLendingAdapterAddress = daiLendingService.GetDaiLendingAdapterAddress();
+        DaiLendingAdapterAddress = daiLendingService.GetDUSDLendingAdapterAddress();
 
          bool isApprovalSuccessful = derivativeToken.approve(DaiLendingAdapterAddress,derivativeAmount);
          
@@ -682,7 +682,7 @@ contract XendFinanceIndividual_Yearn_V1 is
 
         uint256 balanceBeforeDeposit = derivativeToken.balanceOf(address(this));
         
-        DaiLendingAdapterAddress = daiLendingService.GetDaiLendingAdapterAddress();
+        DaiLendingAdapterAddress = daiLendingService.GetDUSDLendingAdapterAddress();
 
          stakedToken.approve(DaiLendingAdapterAddress, amountTransferrable);
 

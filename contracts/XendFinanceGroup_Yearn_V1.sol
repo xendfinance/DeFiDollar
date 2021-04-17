@@ -206,7 +206,7 @@ contract XendFinanceGroup_Yearn_V1 is
 
 
         bool isSuccessful = stakedToken.approve(
-            daiLendingService.GetDaiLendingAdapterAddress(),
+            daiLendingService.GetDUSDLendingAdapterAddress(),
             amountToDeductFromClient
         );
 
@@ -327,7 +327,7 @@ contract XendFinanceGroup_Yearn_V1 is
                 cycleFinancial.derivativeBalanceClaimedBeforeMaturity;
 
         derivativeToken.approve(
-            daiLendingService.GetDaiLendingAdapterAddress(),
+            daiLendingService.GetDUSDLendingAdapterAddress(),
             derivativeBalanceToWithdraw
         );
 
@@ -465,7 +465,7 @@ contract XendFinanceGroup_Yearn_V1 is
 
         bool isSuccessful =
             derivativeToken.approve(
-                daiLendingService.GetDaiLendingAdapterAddress(),
+                daiLendingService.GetDUSDLendingAdapterAddress(),
                 derivativeBalance
             );
 
