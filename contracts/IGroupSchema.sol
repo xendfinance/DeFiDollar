@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: MIT
 pragma solidity 0.6.6;
 
 interface IGroupSchema {
@@ -25,6 +24,8 @@ interface IGroupSchema {
         //represents the total stakes of every cycle member withdrawal
         uint256 stakesClaimed;
         CycleStatus cycleStatus;
+        // represents the number of cycle stakes that user's have cashed out on before the cycle has ended
+        uint256 stakesClaimedBeforeMaturity;
     }
 
     struct CycleFinancial {
@@ -38,6 +39,10 @@ interface IGroupSchema {
         uint256 underlyingBalance;
         // lending shares representation of amount deposited in lending protocol
         uint256 derivativeBalance;
+        // represents the total underlying crypto amount that has been cashed out before the cycle ended
+        uint256 underylingBalanceClaimedBeforeMaturity;
+        // represents the total derivative crypto amount that has been cashed out on before the cycle ended
+        uint256 derivativeBalanceClaimedBeforeMaturity;
     }
 
     struct CycleMember {
@@ -66,5 +71,6 @@ interface IGroupSchema {
         bool exists;
         uint256 index;
     }
+
     enum CycleStatus {NOT_STARTED, ONGOING, ENDED}
 }

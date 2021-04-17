@@ -12,6 +12,17 @@ contract OwnableService {
     address payable public owner;
     address payable public serviceContract;
 
+      event UnderlyingAssetDeposited(
+        address payable user,
+        uint256 underlyingAmount,
+        uint256 derivativeAmount,
+        uint256 balance
+    );
+
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event ContractOwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+
     constructor(address payable _serviceContract) internal {
         owner = msg.sender;
         serviceContract = _serviceContract;
@@ -31,17 +42,20 @@ contract OwnableService {
     }
 
     function transferOwnership(address payable newOwner) public onlyOwner {
-        if (newOwner != address(0)) {
-            owner = newOwner;
-        }
+        address oldOwner = owner;
+        require(newOwner != address(0), "address cannot be zero");
+        owner = newOwner;
+        emit OwnershipTransferred(oldOwner, newOwner);
     }
 
     function transferContractOwnership(address payable newServiceContract)
         public
         onlyOwnerAndServiceContract
     {
-        if (newServiceContract != address(0)) {
-            serviceContract = newServiceContract;
-        }
+        address oldServiceContract = serviceContract;
+        require(newServiceContract != address(0), "address cannot be zero");
+        serviceContract = newServiceContract;
+        emit ContractOwnershipTransferred(oldServiceContract, newServiceContract);
+
     }
 }

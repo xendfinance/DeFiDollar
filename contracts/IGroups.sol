@@ -1,5 +1,4 @@
 pragma solidity 0.6.6;
-
 import "./IGroupSchema.sol";
 
 interface IGroups is IGroupSchema {
@@ -22,6 +21,13 @@ interface IGroups is IGroupSchema {
         returns (uint256);
 
     function incrementEtherDeposit(uint256 amount) external returns (uint256);
+     function getXendTokensReward(address payable receiverAddress)
+        external
+        view
+        returns (uint256);
+
+    function setXendTokensReward(address payable depositorAddress, uint256 amount)
+        external;
 
     function decrementEtherDeposit(uint256 amount) external returns (uint256);
 
@@ -131,6 +137,8 @@ interface IGroups is IGroupSchema {
         );
 
     function getGroupIndex(uint256 groupId) external view returns (uint256);
+
+    function getGroupsLength() external view returns (uint256 length);
 
     function activateStorageOracle(address oracle) external;
 
