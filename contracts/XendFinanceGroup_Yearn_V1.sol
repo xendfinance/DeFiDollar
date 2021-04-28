@@ -403,7 +403,7 @@ contract XendFinanceGroup_Yearn_V1 is
         //     underlyingAmountThatMemberDepositIsWorth
         // );
 
-        underlyingAmountThatMemberDepositIsWorth -= amountToChargeAsPenalites;
+        underlyingAmountThatMemberDepositIsWorth  = underlyingAmountThatMemberDepositIsWorth.sub(amountToChargeAsPenalites);
 
         WithdrawalResolution memory withdrawalResolution =
             _computeAmountToSendToParties(
@@ -438,14 +438,15 @@ contract XendFinanceGroup_Yearn_V1 is
             withdrawalResolution.amountToSendToTreasury +
                 withdrawalResolution.amountToSendToMember;
 
-        cycle.stakesClaimedBeforeMaturity += cycleMember.numberOfCycleStakes;
+        cycle.stakesClaimedBeforeMaturity = cycle.stakesClaimedBeforeMaturity.add(cycleMember.numberOfCycleStakes);
         cycleFinancial
-            .underylingBalanceClaimedBeforeMaturity += totalUnderlyingAmountSentOut;
+            .underylingBalanceClaimedBeforeMaturity = cycleFinancial.underylingBalanceClaimedBeforeMaturity.add(totalUnderlyingAmountSentOut);
+
         cycleFinancial
-            .derivativeBalanceClaimedBeforeMaturity += derivativeBalanceForMember;
+            .derivativeBalanceClaimedBeforeMaturity = cycleFinancial.derivativeBalanceClaimedBeforeMaturity.add(derivativeBalanceForMember);
 
         cycleMember.hasWithdrawn = true;
-        cycleMember.stakesClaimed += cycleMember.numberOfCycleStakes;
+        cycleMember.stakesClaimed = cycleMember.stakesClaimed.add(cycleMember.numberOfCycleStakes);
 
         _updateCycle(cycle);
         _updateCycleMember(cycleMember);
@@ -630,11 +631,11 @@ contract XendFinanceGroup_Yearn_V1 is
             withdrawalResolution.amountToSendToTreasury +
                 withdrawalResolution.amountToSendToMember;
 
-        cycle.stakesClaimed += stakesHoldings;
-        cycleFinancial.underlyingTotalWithdrawn += totalUnderlyingAmountSentOut;
+        cycle.stakesClaimed = cycle.stakesClaimed.add(stakesHoldings);
+        cycleFinancial.underlyingTotalWithdrawn = cycleFinancial.underlyingTotalWithdrawn.add(totalUnderlyingAmountSentOut);
 
         cycleMember.hasWithdrawn = true;
-        cycleMember.stakesClaimed += stakesHoldings;
+        cycleMember.stakesClaimed = cycleMember.stakesClaimed.add(stakesHoldings);
 
         _rewardUserWithTokens(
             cycle.cycleDuration,
