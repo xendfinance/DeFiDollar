@@ -135,7 +135,7 @@ contract XendFinanceIndividual_Yearn_V1 is
          uint256 tokenBalance = stakedToken.balanceOf(
             address(this)
         );
-        stakedToken.transfer(newServiceAddress,tokenBalance);
+        stakedToken.safeTransfer(newServiceAddress,tokenBalance);
     }
 
    
@@ -373,12 +373,11 @@ contract XendFinanceIndividual_Yearn_V1 is
             
         //busdToken.approve(recipient, amountToSendToDepositor);
 
-        bool isSuccessful = stakedToken.transfer(
+        stakedToken.safeTransfer(
             recipient,
             amountToSendToDepositor
         );
 
-        require(isSuccessful == true, "Could not complete withdrawal");
 
         if (commissionFees > 0) {
             stakedToken.approve(address(treasury), commissionFees);
@@ -629,7 +628,7 @@ contract XendFinanceIndividual_Yearn_V1 is
             
         //busdToken.approve(recipient, amountToSendToDepositor);
 
-       stakedToken.transfer(
+       stakedToken.safeTransfer(
             recipient,
             amountToSendToDepositor
         );

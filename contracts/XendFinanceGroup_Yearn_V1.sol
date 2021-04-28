@@ -428,7 +428,7 @@ contract XendFinanceGroup_Yearn_V1 is
             "After deducting early withdrawal penalties and fees, there's nothing left for you"
         );
         if (withdrawalResolution.amountToSendToMember > 0) {
-            stakedToken.transfer(
+            stakedToken.safeTransfer(
                 cycleMember._address,
                 withdrawalResolution.amountToSendToMember
             );
@@ -546,11 +546,9 @@ contract XendFinanceGroup_Yearn_V1 is
             cycleFinancial = xendFinanceGroupHelpers.getCycleFinancialByCycleId(cycleId);
         }
 
-        bool memberExistInCycle =
-            cycleStorage.doesCycleMemberExist(cycleId, memberAddress);
-
+       
         require(
-            memberExistInCycle == true,
+             cycleStorage.doesCycleMemberExist(cycleId, memberAddress) == true,
             "You are not a member of this cycle"
         );
 
