@@ -141,6 +141,7 @@ contract('DUSDendingService', () => {
     it('DaiLendingService Contract: Should Get Current Price Per Full Share', async () => {
 
         var price = await dusdLendingService.GetPricePerFullShare();
+        
         var value = BigInt(price);
 
         console.log(value);
