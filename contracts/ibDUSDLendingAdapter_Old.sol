@@ -5,7 +5,7 @@ import "./SafeMath.sol";
 import "./OwnableService.sol";
 import "./ReentrancyGuard.sol";
 import "./SafeERC20.sol";
-import "./IZap.sol";
+
 
 
 contract ibDUSDLendingAdapter is OwnableService, ReentrancyGuard{
@@ -20,24 +20,15 @@ contract ibDUSDLendingAdapter is OwnableService, ReentrancyGuard{
 
     IERC20 _dusd;
 
-    IERC20 _busd;
-
-    IZap _zap;
-
      constructor(address payable serviceContract) public OwnableService(serviceContract){
 
          // https://github.com/defidollar/defidollar-core/tree/master/contracts/stream
-         // https://github.com/defidollar/defidollar-bsc/blob/main/deployments/mainnet.json
 
-
-        _ibDusd = IibDUSD(0x4EaC4c4e9050464067D673102F8E24b2FccEB350); // interest-bearing DUSD ( shares ) smart contract address Main Network
-        _dusd = IERC20(0x154C28BA3736ee4e5E89E0081a00F04ec67992F0); // DUSD address Main Network
-        _busd = IERC20(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56); // BUSD on Binance Smart Chain
-        _zap = IZap(0x90c52436C9e52DC3E33082a32c0F19225a9F38AB); //         
-
+        _ibDusd = IibDUSD(0x42600c4f6d84Aa4D246a3957994da411FA8A4E1c); // interest-bearing DUSD ( shares ) smart contract address Main Network
+        _dusd = IERC20(0x5BC25f649fc4e26069dDF4cF4010F9f706c23831); // DUSD address Main Network
+        
     }
 
-    
     mapping(address => uint256) userDUSDDeposits;
 
     function GetPricePerFullShare() external view returns (uint256){
@@ -180,21 +171,6 @@ contract ibDUSDLendingAdapter is OwnableService, ReentrancyGuard{
     //  This function is an internal function that enabled DAI contract where user has money to approve the yDai contract address to invest the user's DAI
     //  and to send the yDai shares to the user's address
     function _save(uint256 amount, address account) internal {
-
-        // BUSD is expected, so Zap into dusd and deposit
-
-        //  Amounts assets supported in Zap -> BUSD/USDT/USDT 
-         uint256[] memory inAmounts = new uint[](3);
-         inAmounts[0] = uint256(amount);
-         inAmounts[1] = uint256(0);
-         inAmounts[2] = uint256(0);
-
-        //  approve zap contract to spend the BUSD
-        _busd.approve(address(_zap),amount);
-
-        // perform zap from BUSD to DUSD
-        uint256 dusdAmount = _zap.deposit(inAmounts,amount);
-
         //  Approve the IBDUSD contract address to spend amount of DUSD
         _dusd.approve(address(_ibDusd), amount);
 
