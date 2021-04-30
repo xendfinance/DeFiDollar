@@ -68,8 +68,8 @@ contract EsusuAdapterWithdrawalDelegate is OwnableService, ISavingsConfigSchema 
         IEsusuStorage immutable _esusuStorage;
         IEsusuAdapter immutable _esusuAdapterContract;
         ibDUSDLendingService _ibDUSDLendingService;
-        IERC20 immutable _dusd = IERC20(0x5BC25f649fc4e26069dDF4cF4010F9f706c23831);
-        IibDUSD immutable _ibDUSD = IibDUSD(0x42600c4f6d84Aa4D246a3957994da411FA8A4E1c);
+        IERC20 immutable _dusd = IERC20(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56);
+        IibDUSD immutable _ibDUSD = IibDUSD((0x4EaC4c4e9050464067D673102F8E24b2FccEB350));
 
         bool _isActive = true;
         uint256 _feePrecision = 10;     //  This determines the lower limit of the fee to be charged. With precsion of 10, it means our fee can have a precision of 0.1% and above

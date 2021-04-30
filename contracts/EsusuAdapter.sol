@@ -81,8 +81,8 @@ contract EsusuAdapter is OwnableService, ISavingsConfigSchema {
     IGroups immutable _groupsContract;
 
     ibDUSDLendingService _ibDUSDLendingService;
-    IERC20 immutable _dusd = IERC20(0x5BC25f649fc4e26069dDF4cF4010F9f706c23831);
-    IibDUSD immutable _ibDusd = IibDUSD(0x42600c4f6d84Aa4D246a3957994da411FA8A4E1c);
+    IERC20 immutable _dusd = IERC20(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56);
+    IibDUSD immutable _ibDusd = IibDUSD(0x4EaC4c4e9050464067D673102F8E24b2FccEB350);
     IEsusuStorage _esusuStorage;
     address _delegateContract;
     bool _isActive = true;

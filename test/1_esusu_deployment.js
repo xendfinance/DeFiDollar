@@ -50,9 +50,9 @@
     const DaiContractABI = require("../abi/DAIContract.json");
     const YDaiContractABI = require("../abi/YDAIContractABI.json");
 
-    const DaiContractAddress = "0x5BC25f649fc4e26069dDF4cF4010F9f706c23831";
-    const yDaiContractAddress = "0x42600c4f6d84Aa4D246a3957994da411FA8A4E1c"
-    const unlockedAddress = "0x511ed30e9404cbec4bb06280395b74da5f876d47";   //  Has lots of DUSD
+    const DaiContractAddress = "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56";
+    const yDaiContractAddress = "0x4EaC4c4e9050464067D673102F8E24b2FccEB350"
+    const unlockedAddress = "0xEfB826Ab5D566DB9d5Af50e17B0cEc5A60c18AA3";   //  Has lots of DUSD
     
     const daiContract = new web3.eth.Contract(DaiContractABI,DaiContractAddress);
     const yDaiContract = new web3.eth.Contract(YDaiContractABI,yDaiContractAddress);

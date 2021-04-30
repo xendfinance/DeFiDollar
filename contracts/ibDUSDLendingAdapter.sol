@@ -18,11 +18,13 @@ contract ibDUSDLendingAdapter is OwnableService, ReentrancyGuard{
 
     IibDUSD _ibDusd;
 
-    IERC20 _dusd;
-
     IERC20 _busd;
 
     IZap _zap;
+
+    uint8 BUSD_COIN_INDEX = 0;
+    uint8 USDT_COIN_INDEX = 1;
+    uint8 USDC_COIN_INDEX = 2;
 
      constructor(address payable serviceContract) public OwnableService(serviceContract){
 
@@ -31,14 +33,13 @@ contract ibDUSDLendingAdapter is OwnableService, ReentrancyGuard{
 
 
         _ibDusd = IibDUSD(0x4EaC4c4e9050464067D673102F8E24b2FccEB350); // interest-bearing DUSD ( shares ) smart contract address Main Network
-        _dusd = IERC20(0x154C28BA3736ee4e5E89E0081a00F04ec67992F0); // DUSD address Main Network
         _busd = IERC20(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56); // BUSD on Binance Smart Chain
         _zap = IZap(0x90c52436C9e52DC3E33082a32c0F19225a9F38AB); //         
 
     }
 
     
-    mapping(address => uint256) userDUSDDeposits;
+    mapping(address => uint256) userBUSDDeposits;
 
     function GetPricePerFullShare() external view returns (uint256){
         
@@ -53,10 +54,10 @@ contract ibDUSDLendingAdapter is OwnableService, ReentrancyGuard{
     }
     
     
-    function GetDUSDBalance(address account) external view returns (uint256){
-        return _dusd.balanceOf(account);
+    function GetBUSDBalance(address account) external view returns (uint256){
+        return _busd.balanceOf(account);
     }
-    
+
 
     function GetIBDUSDBalance(address account) public view returns (uint256) {
         return _ibDusd.balanceOf(account);
@@ -80,7 +81,7 @@ contract ibDUSDLendingAdapter is OwnableService, ReentrancyGuard{
         //  await daiContract.methods.approve("recipient(in our case, this smart contract address)",1000000).send({from: "wallet address with DAI"});
 
         //  Transfer DAI from the account address to this smart contract address
-        _dusd.safeTransferFrom(account, address(this), amount);
+        _busd.safeTransferFrom(account, address(this), amount);
 
         //  This gives the yDAI contract approval to invest our DAI
         _save(amount, account);
@@ -102,9 +103,9 @@ contract ibDUSDLendingAdapter is OwnableService, ReentrancyGuard{
     function GetNetRevenue(address account) public view returns (uint256) {
         uint256 grossBalance = GetGrossRevenue(account);
 
-        uint256 userDUSDDepositBalance = userDUSDDeposits[account].mul(1e18); // multiply dai deposit by 1 * 10 ^ 18 to get value in 10 ^36
+        uint256 userBUSDDepositBalance = userBUSDDeposits[account].mul(1e18); // multiply dai deposit by 1 * 10 ^ 18 to get value in 10 ^36
 
-        return grossBalance.sub(userDUSDDepositBalance);
+        return grossBalance.sub(userBUSDDepositBalance);
     }
 
     function Withdraw(uint256 amount, address owner)
@@ -124,11 +125,11 @@ contract ibDUSDLendingAdapter is OwnableService, ReentrancyGuard{
         _withdrawBySharesAndAmount(owner,balanceShares,amount);
 
         //  If we have some DUSD left after transferring a specified amount to a recipient, we can re-invest it in yearn finance
-        uint256 balanceDUSD = _dusd.balanceOf(address(this));
+        uint256 balanceBUSD = _busd.balanceOf(address(this));
 
-        if (balanceDUSD > 0) {
+        if (balanceBUSD > 0) {
             //  This gives the _ibDusd contract approval to invest our DUSD
-            _save(balanceDUSD, owner);
+            _save(balanceBUSD, owner);
         }
     }
 
@@ -151,11 +152,11 @@ contract ibDUSDLendingAdapter is OwnableService, ReentrancyGuard{
         _withdrawBySharesAndAmount(owner,balanceShares,amount);
 
         //  If we have some DAI left after transferring a specified amount to a recipient, we can re-invest it in yearn finance
-        uint256 balanceDUSD = _dusd.balanceOf(address(this));
+        uint256 balanceBUSD = _busd.balanceOf(address(this));
 
-        if (balanceDUSD > 0) {
+        if (balanceBUSD > 0) {
             //  This gives the yDAI contract approval to invest our DAI
-            _save(balanceDUSD, owner);
+            _save(balanceBUSD, owner);
         }
     }
 
@@ -183,24 +184,17 @@ contract ibDUSDLendingAdapter is OwnableService, ReentrancyGuard{
 
         // BUSD is expected, so Zap into dusd and deposit
 
-        //  Amounts assets supported in Zap -> BUSD/USDT/USDT 
+        //  Amounts assets supported in Zap -> BUSD/USDT/USDC
          uint256[] memory inAmounts = new uint[](3);
-         inAmounts[0] = uint256(amount);
-         inAmounts[1] = uint256(0);
-         inAmounts[2] = uint256(0);
+         inAmounts[BUSD_COIN_INDEX] = uint256(amount);
+         inAmounts[USDT_COIN_INDEX] = uint256(0);
+         inAmounts[USDC_COIN_INDEX] = uint256(0);
 
         //  approve zap contract to spend the BUSD
         _busd.approve(address(_zap),amount);
 
         // perform zap from BUSD to DUSD
-        uint256 dusdAmount = _zap.deposit(inAmounts,amount);
-
-        //  Approve the IBDUSD contract address to spend amount of DUSD
-        _dusd.approve(address(_ibDusd), amount);
-
-        //  Now our yDAI contract has deposited our DAI and it is earning interest and this gives us yDAI token in this Wallet contract
-        //  and we will use the yDAI token to redeem our DAI
-        _ibDusd.deposit(amount);
+        uint256 dusdAmount = _zap.deposit(inAmounts,0);
 
         //  call balanceOf and get the total balance of ibDusd shares in this contract
         uint256 shares = _ibDusd.balanceOf(address(this));
@@ -209,45 +203,51 @@ contract ibDUSDLendingAdapter is OwnableService, ReentrancyGuard{
         _ibDusd.safeTransfer(account, shares);
 
         //  add deposited dai to userDaiDeposits mapping
-        userDUSDDeposits[account] = userDUSDDeposits[account].add(amount);
+        userBUSDDeposits[account] = userBUSDDeposits[account].add(amount);
     }
     
     function _withdrawBySharesOnly(address owner, uint256 balanceShares) internal {
 
-        //  We now call the withdraw function to withdraw the total DUSD we have. This withdrawal is sent to this smart contract
-        _ibDusd.withdraw(balanceShares);
+        //  Give Zap contract permission to transfer shares
+        _ibDusd.approve(address(_zap),balanceShares);
 
-        uint256 contractDUSDBalance = _dusd.balanceOf(address(this));
+        //  We now call the withdraw function on Zap to withdraw the total BUSD we have. This withdrawal is sent to this smart contract
+        _zap.withdraw(balanceShares,BUSD_COIN_INDEX,0);
+
+        uint256 contractBUSDBalance = _busd.balanceOf(address(this));
 
         //  Now all the DAI we have are in the smart contract wallet, we can now transfer the total amount to the recipient
-        _dusd.safeTransfer(owner, contractDUSDBalance);
+        _busd.safeTransfer(owner, contractBUSDBalance);
 
         //   remove withdrawn dai of this owner from userDaiDeposits mapping
-        if (userDUSDDeposits[owner] >= contractDUSDBalance) {
-            userDUSDDeposits[owner] = userDUSDDeposits[owner].sub(
-                contractDUSDBalance
+        if (userBUSDDeposits[owner] >= contractBUSDBalance) {
+            userBUSDDeposits[owner] = userBUSDDeposits[owner].sub(
+                contractBUSDBalance
             );
         } else {
-            userDUSDDeposits[owner] = 0;
+            userBUSDDeposits[owner] = 0;
         }
     }
     
     function _withdrawBySharesAndAmount(address owner, uint256 balanceShares, uint256 amount) internal {
         
-        //  We now call the withdraw function to withdraw the total DUSD we have. This withdrawal is sent to this smart contract
-        _ibDusd.withdraw(balanceShares);
+        //  Give Zap contract permission to transfer shares
+        _ibDusd.approve(address(_zap),balanceShares);
+
+        //  We now call the withdraw function on Zap to withdraw the total BUSD we have. This withdrawal is sent to this smart contract
+        _zap.withdraw(balanceShares,BUSD_COIN_INDEX,0);
 
         //  Now all the DUSD we have are in the smart contract wallet, we can now transfer the specified amount to a recipient of our choice
-        _dusd.safeTransfer(owner, amount);
+        _busd.safeTransfer(owner, amount);
         
 
         //   remove withdrawn DUSD of this owner from userDaiDeposits mapping
-        if (userDUSDDeposits[owner] >= amount) {
-            userDUSDDeposits[owner] = userDUSDDeposits[owner].sub(
+        if (userBUSDDeposits[owner] >= amount) {
+            userBUSDDeposits[owner] = userBUSDDeposits[owner].sub(
                 amount
             );
         } else {
-            userDUSDDeposits[owner] = 0;
+            userBUSDDeposits[owner] = 0;
         }
     }
 }

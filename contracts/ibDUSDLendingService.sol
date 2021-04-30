@@ -43,8 +43,8 @@ contract ibDUSDLendingService {
         _dusdLendingAdapter.WithdrawBySharesOnly(msg.sender, sharesAmount);
     }
 
-    function UserDUSDBalance(address user) external view returns (uint256) {
-        return _dusdLendingAdapter.GetDUSDBalance(user);
+    function UserBUSDBalance(address user) external view returns (uint256) {
+        return _dusdLendingAdapter.GetBUSDBalance(user);
     }
 
     function UserShares(address user) external view returns (uint256) {

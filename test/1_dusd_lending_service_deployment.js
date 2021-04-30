@@ -91,7 +91,6 @@ contract('DUSDendingService', () => {
         //  Update the adapter
         await dusdLendingService.UpdateAdapter(dusdLendingAdapterContract.address);
 
-
         //  Get the addresses and Balances of at least 2 accounts to be used in the test
         //  Send DAI to the addresses
         web3.eth.getAccounts().then(function(accounts){
@@ -140,7 +139,7 @@ contract('DUSDendingService', () => {
     
     it('DaiLendingService Contract: Should Get Current Price Per Full Share', async () => {
 
-        var price = await dusdLendingService.GetPricePerFullShare();
+        var price = await dusdLendingAdapterContract.GetPricePerFullShare();
         
         var value = BigInt(price);
 
@@ -155,30 +154,30 @@ contract('DUSDendingService', () => {
 
     });
 
-    // it('DaiLendingService Contract: Should Save some DUSD in the DeFi Dollar', async() => {
+    it('DaiLendingService Contract: Should Save some DUSD in the DeFi Dollar', async() => {
 
-    //     //  First we have to approve the adapter to spend money on behlaf of the owner of the DAI, in this case account 1 and 2
-    //     var approvedAmountToSpend = BigInt(10000000000000000000000); //   10,000 Dai
-    //     await approveDai(dusdLendingAdapterContract.address,account1,approvedAmountToSpend);
-    //     await approveDai(dusdLendingAdapterContract.address,account2,approvedAmountToSpend);
+        //  First we have to approve the adapter to spend money on behlaf of the owner of the DAI, in this case account 1 and 2
+        var approvedAmountToSpend = BigInt(10000000000000000000000); //   10,000 Dai
+        await approveDai(dusdLendingAdapterContract.address,account1,approvedAmountToSpend);
+        await approveDai(dusdLendingAdapterContract.address,account2,approvedAmountToSpend);
 
-    //     //  Save 5,000 dai
-    //     //  Amount is deducted from sender which is account 1
-    //     //  TODO: find a way to make request from account 2
-    //     var approvedAmountToSave = "2000000000000000000000"; // NOTE: Use amount as string. It is a bug from web3.js. If you use BigInt it will fail
-    //     await dusdLendingService.Save(approvedAmountToSave); 
+        //  Save 5,000 dai
+        //  Amount is deducted from sender which is account 1
+        //  TODO: find a way to make request from account 2
+        var approvedAmountToSave = "2000000000000000000000"; // NOTE: Use amount as string. It is a bug from web3.js. If you use BigInt it will fail
+        await dusdLendingService.Save(approvedAmountToSave); 
 
-    //     //  Get YDai Shares balance and Dai balance after saving
-    //     var YDaibalanceAfterSaving = BigInt(await dusdLendingAdapterContract.GetIBDUSDBalance(account1));
-    //     var DaiBalanceAfterSaving = BigInt(await dusdLendingAdapterContract.GetDUSDBalance(account1));
+        //  Get YDai Shares balance and Dai balance after saving
+        var YDaibalanceAfterSaving = BigInt(await dusdLendingAdapterContract.GetIBDUSDBalance(account1));
+        var DaiBalanceAfterSaving = BigInt(await dusdLendingAdapterContract.GetBUSDBalance(account1));
 
 
-    //     console.log("DaiLendingService Contract - YDai Balance After Saving: "+YDaibalanceAfterSaving);
-    //     console.log("DaiLendingService Contract - Dai Balance After Saving: "+DaiBalanceAfterSaving);
+        console.log("DaiLendingService Contract - YDai Balance After Saving: "+YDaibalanceAfterSaving);
+        console.log("DaiLendingService Contract - Dai Balance After Saving: "+DaiBalanceAfterSaving);
 
-    //     assert(YDaibalanceAfterSaving > 0);
-    //     assert(DaiBalanceAfterSaving >= 0);
-    // });
+        assert(YDaibalanceAfterSaving > 0);
+        assert(DaiBalanceAfterSaving >= 0);
+    });
 
 
     
@@ -198,7 +197,7 @@ contract('DUSDendingService', () => {
     //         await approveYDai(dusdLendingAdapterContract.address,account2,approvedAmountToSpend);
 
     //         //  Get Dai balance before withdrawal
-    //         var balanceBeforeWithdrawal = BigInt(await dusdLendingAdapterContract.GetDUSDBalance(account1));
+    //         var balanceBeforeWithdrawal = BigInt(await dusdLendingAdapterContract.GetBUSDBalance(account1));
 
     //         //  Withdraw 2,000  Dai. 
     //         //  TODO: find a way to make request from account 2
@@ -206,7 +205,7 @@ contract('DUSDendingService', () => {
     //         await dusdLendingService.Withdraw(approvedAmountToWithdraw);
 
     //         //  Get Dai balance after withdrawal
-    //         var balanceAfterWithdrawal = BigInt(await dusdLendingAdapterContract.GetDUSDBalance(account1));
+    //         var balanceAfterWithdrawal = BigInt(await dusdLendingAdapterContract.GetBUSDBalance(account1));
             
     //         assert(balanceBeforeWithdrawal >= 0);
     //         assert(balanceAfterWithdrawal > 0);
