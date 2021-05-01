@@ -16,7 +16,7 @@ import "./IRewardConfig.sol";
 import "./IERC20.sol";
 import "./IDUSDLendingService.sol";
 import "./IibDUSD.sol";
-import "./IXendToken.sol";
+import "./IRewardBridge.sol";
 import "./IGroups.sol";
 
 pragma experimental ABIEncoderV2;
@@ -75,7 +75,7 @@ contract XendFinanceIndividual_Yearn_V1 is
     IGroups groupStorage;
     ISavingsConfig savingsConfig;
     IRewardConfig rewardConfig;
-    IXendToken xendToken;
+    IRewardBridge rewardBridge;
     ITreasury treasury;
 
     bool isDeprecated = false;
@@ -104,7 +104,7 @@ contract XendFinanceIndividual_Yearn_V1 is
         address derivativeTokenAddress,
         address rewardConfigAddress,
         address treasuryAddress,
-        address xendTokenAddress
+        address rewardBridgeAddress
     ) public {
         daiLendingService = IDUSDLendingService(daiLendingServiceAddress);
         stakedToken = IERC20(tokenAddress);
@@ -115,7 +115,7 @@ contract XendFinanceIndividual_Yearn_V1 is
         derivativeToken = IibDUSD(derivativeTokenAddress);
         rewardConfig = IRewardConfig(rewardConfigAddress);
         treasury = ITreasury(treasuryAddress);
-        xendToken = IXendToken(xendTokenAddress);
+        rewardBridge = IRewardBridge(rewardBridgeAddress);
     }
 
     function deprecateContract(address newServiceAddress)
@@ -162,6 +162,12 @@ contract XendFinanceIndividual_Yearn_V1 is
     
     function getAdapterAddress() external  {
         DaiLendingAdapterAddress = daiLendingService.GetDUSDLendingAdapterAddress();
+    }
+
+    function updateRewardBridgeAddress(address newRewardBridgeAddress) external onlyOwner{
+        require(newRewardBridgeAddress!=address(0x0),"Invalid address");
+        require(newRewardBridgeAddress.isContract(),"Invalid contract address");
+        rewardBridge = IRewardBridge(newRewardBridgeAddress);
     }
 
     function getClientRecord(address depositor)
@@ -799,7 +805,7 @@ function _rewardUserWithTokens(
     );
 
     if (numberOfRewardTokens > 0) {
-        xendToken.mint(recipient, numberOfRewardTokens);
+        rewardBridge.rewardUser(numberOfRewardTokens,recipient);
 
         _UpdateMemberToXendTokeRewardMapping(recipient,numberOfRewardTokens);
          //  increase the total number of xend token rewards distributed

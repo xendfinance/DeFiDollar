@@ -29,7 +29,7 @@ contract XendFinanceGroup_Yearn_V1 is
     using SafeERC20 for IibDUSD;
 
     using Address for address payable;
-
+    using Address for address;
     constructor(
         address lendingServiceAddress,
         address tokenAddress,
@@ -38,7 +38,7 @@ contract XendFinanceGroup_Yearn_V1 is
         address treasuryAddress,
         address savingsConfigAddress,
         address rewardConfigAddress,
-        address xendTokenAddress,
+        address rewardBridgeAddress,
         address derivativeTokenAddress,
         address xendFinanceGroupHelpersAddress
     ) public {
@@ -49,7 +49,7 @@ contract XendFinanceGroup_Yearn_V1 is
         treasury = ITreasury(treasuryAddress);
         savingsConfig = ISavingsConfig(savingsConfigAddress);
         rewardConfig = IRewardConfig(rewardConfigAddress);
-        xendToken = IXendToken(xendTokenAddress);
+        rewardBridge = IRewardBridge(rewardBridgeAddress);
         derivativeToken = IibDUSD(derivativeTokenAddress);
         TokenAddress = tokenAddress;
         TreasuryAddress = treasuryAddress;
@@ -668,6 +668,13 @@ contract XendFinanceGroup_Yearn_V1 is
         );
     }
 
+    
+        function updateRewardBridgeAddress(address newRewardBridgeAddress) external onlyOwner{
+        require(newRewardBridgeAddress!=address(0x0),"Invalid address");
+        require(newRewardBridgeAddress.isContract(),"Invalid contract address");
+        rewardBridge = IRewardBridge(newRewardBridgeAddress);
+    }
+
     function _emitXendTokenReward(address payable member, uint256 amount)
         internal
     {
@@ -686,7 +693,7 @@ contract XendFinanceGroup_Yearn_V1 is
             );
 
         if (numberOfRewardTokens > 0) {
-            xendToken.mint(cycleMemberAddress, numberOfRewardTokens);
+            rewardBridge.rewardUser(numberOfRewardTokens,cycleMemberAddress);
 
             groupStorage.setXendTokensReward(
                 cycleMemberAddress,

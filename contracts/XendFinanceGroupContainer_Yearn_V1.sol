@@ -15,7 +15,7 @@ import "./IibDUSD.sol";
 //import "./Address.sol";
 import "./IRewardConfig.sol";
 import "./SafeMath.sol";
-import "./IXendToken.sol";
+import "./IRewardBridge.sol";
 import "./IXendFinanceGroup_Yearn_V1Helpers.sol";
 
 
@@ -69,7 +69,7 @@ contract XendFinanceGroupContainer_Yearn_V1 is IGroupSchema {
     ITreasury treasury;
     ISavingsConfig savingsConfig;
     IRewardConfig rewardConfig;
-    IXendToken xendToken;
+    IRewardBridge rewardBridge;
     IibDUSD derivativeToken;
     IXendFinanceGroup_Yearn_V1Helpers xendFinanceGroupHelpers;
 
