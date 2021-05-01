@@ -62,7 +62,7 @@ contract Groups is IGroupSchema, StorageOwners {
    function setXendTokensReward(
         address payable receiverAddress,
         uint256 amount
-    ) external {
+    ) external onlyStorageOracle{
         XendTokensReward[receiverAddress] = XendTokensReward[receiverAddress]
             .add(amount);
     }

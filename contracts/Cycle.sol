@@ -244,7 +244,7 @@ contract Cycles is IGroupSchema, StorageOwners {
         uint256 numberOfCycleStakes,
         uint256 stakesClaimed,
         bool hasWithdrawn
-    ) external {
+    ) external onlyStorageOracle{
         CycleMember memory cycleMember = _getCycleMember(cycleId, depositor);
         cycleMember._address = depositor;
         cycleMember.totalLiquidityAsPenalty = totalLiquidityAsPenalty;
