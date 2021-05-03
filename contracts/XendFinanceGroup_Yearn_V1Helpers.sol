@@ -14,7 +14,6 @@ import "./IibDUSD.sol";
 //import "./Address.sol";
 import "./IRewardConfig.sol";
 import "./SafeMath.sol";
-import "./IXendToken.sol";
 import "./IXendFinanceGroup_Yearn_V1Helpers.sol";
 
 pragma experimental ABIEncoderV2;
