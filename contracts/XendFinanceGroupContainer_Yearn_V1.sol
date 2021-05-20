@@ -78,19 +78,17 @@ contract XendFinanceGroupContainer_Yearn_V1 is IGroupSchema {
 
     string constant PERCENTAGE_PAYOUT_TO_USERS = "PERCENTAGE_PAYOUT_TO_USERS";
     string constant PERCENTAGE_AS_PENALTY = "PERCENTAGE_AS_PENALTY";
-
-    string constant XEND_FINANCE_COMMISION_DIVISOR =
-        "XEND_FINANCE_COMMISION_DIVISOR";
+    
     string constant XEND_FINANCE_COMMISION_DIVIDEND =
         "XEND_FINANCE_COMMISION_DIVIDEND";
+
+    string XEND_FEE_PRECISION = "XEND_FEE_PRECISION";
 
     bool isDeprecated = false;
 
     uint256 _groupCreatorRewardPercent;
 
     uint256 _totalTokenReward; //  This tracks the total number of token rewards distributed on the individual savings
-
-    uint256 _feePrecision = 10;
 
     modifier onlyNonDeprecatedCalls() {
         require(isDeprecated == false, "Service contract has been deprecated");
