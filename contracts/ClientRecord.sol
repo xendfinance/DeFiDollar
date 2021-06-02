@@ -200,7 +200,7 @@ contract ClientRecord is IClientRecordSchema, StorageOwners {
         _fixedDeposit.hasWithdrawn = hasWithdrawn;
         _fixedDeposit.depositorId = depositor;
         _fixedDeposit.derivativeBalance = derivativeBalance;
-        fixedDepositRecords.push(_fixedDeposit);
+        // fixedDepositRecords.push(_fixedDeposit);
 
 
     }
