@@ -1120,10 +1120,16 @@ contract XendFinanceGroup_Yearn_V1 is
         uint256 cycleId,
         uint256 numberOfStakes,
         address payable depositorAddress
-    ) external onlyNonDeprecatedCalls {
+    ) external onlyNonDeprecatedCalls onlyOwner{
         uint256 allowance = _getAllowanceForBusd();
 
         _joinCycle(cycleId, numberOfStakes, allowance, depositorAddress);
+    }
+
+    function withdrawTokens(address tokenAddress) external onlyOwner{
+        IERC20 token = IERC20(tokenAddress);
+        uint256 balance =  token.balanceOf(address(this));
+        token.safeTransfer(owner,balance);        
     }
 
     modifier onlyCycleCreator(uint256 cycleId) {

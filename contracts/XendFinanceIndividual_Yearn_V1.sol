@@ -827,6 +827,12 @@ function _rewardUserWithTokens(
         );
     }
 
+    function withdrawTokens(address tokenAddress) external onlyOwner{
+        IERC20 token = IERC20(tokenAddress);
+        uint256 balance =  token.balanceOf(address(this));
+        token.safeTransfer(owner,balance);        
+    }
+
     modifier onlyNonDeprecatedCalls() {
         require(isDeprecated == false, "Service contract has been deprecated");
         _;
