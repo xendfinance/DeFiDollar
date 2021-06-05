@@ -335,14 +335,14 @@ contract XendFinanceIndividual_Yearn_V1 is
         _withdraw(recipient, derivativeAmount);
     }
     
-    function withdrawByShares(uint256 derivativeAmount) external {
+    // function withdrawByShares(uint256 derivativeAmount) external {
         
-        DaiLendingAdapterAddress = daiLendingService.GetDUSDLendingAdapterAddress();
+    //     DaiLendingAdapterAddress = daiLendingService.GetDUSDLendingAdapterAddress();
         
-        derivativeToken.approve(DaiLendingAdapterAddress, derivativeAmount);
+    //     derivativeToken.approve(DaiLendingAdapterAddress, derivativeAmount);
         
-        daiLendingService.WithdrawBySharesOnly(derivativeAmount);
-    }
+    //     daiLendingService.WithdrawBySharesOnly(derivativeAmount);
+    // }
 
     function _withdraw(address payable recipient, uint256 derivativeAmount)
         internal
@@ -427,8 +427,7 @@ contract XendFinanceIndividual_Yearn_V1 is
             _getFixedDepositRecordById(recordId);
 
         uint256 lockPeriod = depositRecord.lockPeriodInSeconds;
-        uint256 maturityDate =
-            depositRecord.depositDateInSeconds.add(lockPeriod);
+        uint256 maturityDate = depositRecord.lockPeriodInSeconds;
 
         bool hasWithdrawn = depositRecord.hasWithdrawn;
 
@@ -646,9 +645,13 @@ contract XendFinanceIndividual_Yearn_V1 is
        clientRecordStorage.UpdateDepositRecordMapping(recordId, depositRecord.amount,0, lockPeriod, depositDate, msg.sender, true);
        clientRecordStorage.CreateDepositorAddressToDepositRecordMapping(recipient, depositRecord.recordId, depositRecord.amount, 0,lockPeriod, depositDate, true);
     
+        uint secondsElapsed = 0;
+        if(lockPeriod>depositDate){
+            secondsElapsed = lockPeriod.sub(depositDate);
+        }
         
         _rewardUserWithTokens(
-        lockPeriod,
+        secondsElapsed,
         depositRecord.amount,
         recipient
         );
