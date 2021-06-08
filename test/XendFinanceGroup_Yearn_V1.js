@@ -25,20 +25,20 @@ const XendFinanceGroup_Yearn_V1Helpers  =artifacts.require("XendFinanceGroup_Yea
 
 const RewardConfigContract = artifacts.require("RewardConfig");
 
-const xendTokenContract = artifacts.require("XendToken");
+const RewardBridgeContract = artifacts.require("RewardBridge");
 
 const EsusuServiceContract = artifacts.require("EsusuService");
 const EsusuAdapterContract = artifacts.require("EsusuAdapter");
 const EsusuAdapterWithdrawalDelegateContract = artifacts.require("EsusuAdapterWithdrawalDelegate");
 
 
-const DaiContractAddress = "0x5BC25f649fc4e26069dDF4cF4010F9f706c23831";
+const DaiContractAddress = "0xe9e7cea3dedca5984780bafc599bd69add087d56";
 
-const yDaiContractAddress = "0x42600c4f6d84Aa4D246a3957994da411FA8A4E1c";
+const yDaiContractAddress = "0x4eac4c4e9050464067d673102f8e24b2fcceb350";
 
 const DaiContractABI = require('../abi/DAIContract.json');
 
-const unlockedAddress = "0x3B15CEc2d922Ab0Ef74688bcC1056461049f89CB";
+const unlockedAddress = "0xEfB826Ab5D566DB9d5Af50e17B0cEc5A60c18AA3";
 
 const daiContract = new web3.eth.Contract(DaiContractABI,DaiContractAddress);
 
@@ -96,13 +96,14 @@ contract("XendFinanceGroup_Yearn_V1", async (accounts) => {
 
   let xendFinanceGroup_Yearn_V1Helpers = await XendFinanceGroup_Yearn_V1Helpers.new(groups.address,cycles.address)
 
-  let xendToken = await xendTokenContract.deployed("Xend Token", "XTK", 18, 200000000000000000000000000);
+  let rewardBridge = await RewardBridgeContract.deployed();
 
   let daiLendingService = await DaiLendingServiceContract.deployed();
 
   let daiLendingAdapter = await DaiLendingAdapterContract.deployed(daiLendingService.address);
 
-  daiLendingService.UpdateAdapter(daiLendingAdapter.address);
+
+
 
   contractInstance = await XendFinanceGroup_Yearn_V1.new(
     daiLendingService.address,
@@ -112,11 +113,14 @@ contract("XendFinanceGroup_Yearn_V1", async (accounts) => {
     treasury.address,
     savingsConfig.address,
     rewardConfig.address,
-    xendToken.address,
+    rewardBridge.address,
     yDaiContractAddress,
     xendFinanceGroup_Yearn_V1Helpers.address
 
   );
+
+  console.log(`${daiLendingAdapter.address}-${daiLendingService.address}-${DaiContractAddress}-${groups.address}-${cycles.address}-${treasury.address}-${savingsConfig.address}-${rewardConfig.address}-${rewardBridge.address}-${yDaiContractAddress}-${xendFinanceGroup_Yearn_V1Helpers.address}`)
+    await daiLendingService.UpdateAdapter(daiLendingAdapter.address);
 
     await groups.activateStorageOracle(contractInstance.address);
 
@@ -141,6 +145,9 @@ contract("XendFinanceGroup_Yearn_V1", async (accounts) => {
    console.log(doesGroupExist)
 
     await contractInstance.createCycle(1, startTimeStamp, duration, 10, true, 100)
+    console.log("Created Cycle")
+    let pricePerFullShare =  await daiLendingAdapter.GetPricePerFullShare();
+    console.log({pricePerFullShare});
 
     const joinCycleResult = await contractInstance.joinCycle(1, 2, {from: accounts[0]});
     console.log(joinCycleResult)
@@ -169,7 +176,7 @@ contract("XendFinanceGroup_Yearn_V1", async (accounts) => {
   let xendFinanceGroup_Yearn_V1Helpers = await XendFinanceGroup_Yearn_V1Helpers.new(groups.address,cycles.address)
 
 
-  let xendToken = await xendTokenContract.deployed("Xend Token", "XTK", 18, 200000000000000000000000000);
+  let rewardBridge = await RewardBridgeContract.deployed();
 
   let daiLendingService = await DaiLendingServiceContract.deployed();
 
@@ -184,7 +191,7 @@ contract("XendFinanceGroup_Yearn_V1", async (accounts) => {
     treasury.address,
     savingsConfig.address,
     rewardConfig.address,
-    xendToken.address,
+    rewardBridge.address,
     yDaiContractAddress,
     xendFinanceGroup_Yearn_V1Helpers.address
 
@@ -220,6 +227,11 @@ contract("XendFinanceGroup_Yearn_V1", async (accounts) => {
   });
 
 
+
+
+
+
+
   it("should withdraw from a cycle while it's ongoing", async () => {
     let treasury = await TreasuryContract.new();
 
@@ -237,18 +249,15 @@ contract("XendFinanceGroup_Yearn_V1", async (accounts) => {
       esusuServiceContract.address,
       groups.address
     );
-    let xendToken = await xendTokenContract.deployed("Xend Token", "XTK", 18, 200000000000000000000000000);
-
     let xendFinanceGroup_Yearn_V1Helpers = await XendFinanceGroup_Yearn_V1Helpers.new(groups.address,cycles.address)
 
+    let rewardBridge = await RewardBridgeContract.deployed();
 
     let daiLendingService = await DaiLendingServiceContract.deployed();
   
-    let daiLendingAdapter = await DaiLendingAdapterContract.deployed(daiLendingService.address);
+    let daiLendingAdapter = await DaiLendingAdapterContract.deployed();
     daiLendingService.UpdateAdapter(daiLendingAdapter.address);
 
-    
-    
 
     await esusuServiceContract.UpdateAdapter(esusuAdapterContract.address);
     await esusuServiceContract.UpdateAdapterWithdrawalDelegate(esusuAdapterWithdrawalDelegateContract.address);
@@ -264,7 +273,7 @@ contract("XendFinanceGroup_Yearn_V1", async (accounts) => {
       treasury.address,
       savingsConfig.address,
       rewardConfig.address,
-      xendToken.address,
+      rewardBridge.address,
       yDaiContractAddress,
       xendFinanceGroup_Yearn_V1Helpers.address
 
@@ -286,8 +295,8 @@ contract("XendFinanceGroup_Yearn_V1", async (accounts) => {
         "4"
       );
   
-      await rewardConfig.SetRewardActive(true);
-      await xendToken.grantAccess(contractInstance.address);
+      await rewardConfig.SetRewardActive(false);
+      await rewardBridge.grantAccess(contractInstance.address);
   
       await contractInstance.createGroup("njokuAkawo", "N9");
       
@@ -295,20 +304,18 @@ contract("XendFinanceGroup_Yearn_V1", async (accounts) => {
   
       let duration = 100 * 86400;
   
-      let amountToApprove = BigInt(10000000000000000000);
   
       let amountToSend = BigInt(10000000000000000000);
 
-      let amountToWithdraw = BigInt(100000000000000000);
 
   
       await sendDai(amountToSend, accounts[0]);
   
-     const approveResult = await approveDai(contractInstance.address, accounts[0], amountToApprove);
+     const approveResult = await approveDai(contractInstance.address, accounts[0], amountToSend);
   
      console.log(approveResult)
       
-      await contractInstance.createCycle(1, startTimeStamp, duration, 10, true, amountToWithdraw);
+      await contractInstance.createCycle(1, startTimeStamp, duration, 10, true, amountToSend);
 
      
 
@@ -326,12 +333,16 @@ contract("XendFinanceGroup_Yearn_V1", async (accounts) => {
       let cycleFinancials = await cycles.getCycleFinancialsByCycleId(1);
       console.log(`${cycleFinancials.underlyingBalance} ${cycleFinancials.derivativeBalance}`, 'Cycle Financials');
 
+
       const withdrawFromCycleWhileItIsOngoingResult  = await contractInstance.withdrawFromCycleWhileItIsOngoing(1);
 
       assert(withdrawFromCycleWhileItIsOngoingResult.receipt.status == true, "tx receipt is true")
 
 
-  })
+   })
+
+
+
 
   it("should withdraw from a cycle", async () => {
       
@@ -357,7 +368,7 @@ contract("XendFinanceGroup_Yearn_V1", async (accounts) => {
     let xendFinanceGroup_Yearn_V1Helpers = await XendFinanceGroup_Yearn_V1Helpers.new(groups.address,cycles.address)
 
   
-    let xendToken = await xendTokenContract.deployed("Xend Token", "XTK", 18, 200000000000000000000000000);
+    let rewardBridge = await RewardBridgeContract.deployed();
 
     let daiLendingService = await DaiLendingServiceContract.deployed();
   
@@ -381,7 +392,7 @@ contract("XendFinanceGroup_Yearn_V1", async (accounts) => {
       treasury.address,
       savingsConfig.address,
       rewardConfig.address,
-      xendToken.address,
+      rewardBridge.address,
       yDaiContractAddress,
       xendFinanceGroup_Yearn_V1Helpers.address
 
@@ -404,7 +415,7 @@ contract("XendFinanceGroup_Yearn_V1", async (accounts) => {
     );
 
     await rewardConfig.SetRewardActive(true);
-    await xendToken.grantAccess(contractInstance.address);
+    await rewardBridge.grantAccess(contractInstance.address);
 
 
 
@@ -418,7 +429,6 @@ contract("XendFinanceGroup_Yearn_V1", async (accounts) => {
       let amountToApprove = BigInt(10000000000000000000);
   
       let amountToSend = BigInt(10000000000000000000);
-      let amountToWithdraw = BigInt(100000000000000000);
   
       await sendDai(amountToSend, accounts[0]);
   
@@ -426,7 +436,7 @@ contract("XendFinanceGroup_Yearn_V1", async (accounts) => {
   
      console.log(approveResult)
       
-      await contractInstance.createCycle(1, startTimeStamp, duration, 10, true, amountToWithdraw);
+      await contractInstance.createCycle(1, startTimeStamp, duration, 10, true, amountToSend);
 
      
       await cycles.activateStorageOracle(contractInstance.address);

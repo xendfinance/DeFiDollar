@@ -201,6 +201,7 @@ contract XendFinanceGroup_Yearn_V1 is
         );
 
 
+
         bool isSuccessful = stakedToken.approve(
             daiLendingService.GetDUSDLendingAdapterAddress(),
             amountToDeductFromClient
@@ -212,6 +213,7 @@ contract XendFinanceGroup_Yearn_V1 is
         uint256 balanceBeforeDeposit = derivativeToken.balanceOf(address(this));
 
         daiLendingService.Save(amountToDeductFromClient);
+
 
         uint256 balanceAfterDeposit = derivativeToken.balanceOf(address(this));
 
@@ -383,7 +385,6 @@ contract XendFinanceGroup_Yearn_V1 is
 
     
 
-        //uint256 membersDeposit = cycleFinancial.derivativeBalance.div(cycle.numberOfDepositors);
 
         uint256 initialUnderlyingDepositByMember =
             cycleMember.numberOfCycleStakes.mul(cycle.cycleStakeAmount);

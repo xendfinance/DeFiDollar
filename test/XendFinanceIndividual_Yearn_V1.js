@@ -35,15 +35,15 @@ const DaiContractABI = require('../abi/DaiContract.json');
 
 const YDaiContractABI = require('../abi/YDaiContractABI.json');
 
-const DaiContractAddress = "0x5BC25f649fc4e26069dDF4cF4010F9f706c23831";
+const DaiContractAddress = "0xe9e7cea3dedca5984780bafc599bd69add087d56";
 
-const yDaiContractAddress = "0x42600c4f6d84Aa4D246a3957994da411FA8A4E1c";
+const yDaiContractAddress = "0x4eac4c4e9050464067d673102f8e24b2fcceb350";
 
 const daiContract = new web3.eth.Contract(DaiContractABI,DaiContractAddress);
     
 const yDaiContract = new web3.eth.Contract(YDaiContractABI,yDaiContractAddress);
 
-const unlockedAddress = "0x3B15CEc2d922Ab0Ef74688bcC1056461049f89CB";
+const unlockedAddress = "0xEfB826Ab5D566DB9d5Af50e17B0cEc5A60c18AA3";
 
 
 //  Approve a smart contract address or normal address to spend on behalf of the owner
