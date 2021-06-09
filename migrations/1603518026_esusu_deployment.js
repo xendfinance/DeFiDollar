@@ -20,8 +20,8 @@ const EsusuAdapterWithdrawalDelegateContract = artifacts.require('EsusuAdapterWi
 const EsusuStorageContract = artifacts.require('EsusuStorage');
 const XendFinanceGroup_Yearn_V1Helpers  = artifacts.require("XendFinanceGroup_Yearn_V1Helpers");
 
-const StakedTokenContractAddress = "0x5BC25f649fc4e26069dDF4cF4010F9f706c23831";  // This is a custom BUSD for ForTube, you will not find it on BSC Faucet
-const DerivativeTokenContractAddress = "0x42600c4f6d84Aa4D246a3957994da411FA8A4E1c";  // This is the FToken shares a user will receive when they deposit BUSD
+const StakedTokenContractAddress = "0xe9e7cea3dedca5984780bafc599bd69add087d56";  // This is a custom BUSD for ForTube, you will not find it on BSC Faucet
+const DerivativeTokenContractAddress = "0x4eac4c4e9050464067d673102f8e24b2fcceb350";  // This is the FToken shares a user will receive when they deposit BUSD
 
 
 
