@@ -26,7 +26,7 @@ const XendFinanceIndividual_Yearn_V1 = artifacts.require(
 
 const RewardConfigContract = artifacts.require("RewardConfig");
 
-const XendTokenContract = artifacts.require("XendToken");
+const RewardBridgeContract = artifacts.require("RewardBridge");
 
 
 const EsusuServiceContract = artifacts.require("EsusuService");
@@ -35,15 +35,15 @@ const DaiContractABI = require('../abi/DaiContract.json');
 
 const YDaiContractABI = require('../abi/YDaiContractABI.json');
 
-const DaiContractAddress = "0x5BC25f649fc4e26069dDF4cF4010F9f706c23831";
+const DaiContractAddress = "0xe9e7cea3dedca5984780bafc599bd69add087d56";
 
-const yDaiContractAddress = "0x42600c4f6d84Aa4D246a3957994da411FA8A4E1c";
+const yDaiContractAddress = "0x4eac4c4e9050464067d673102f8e24b2fcceb350";
 
 const daiContract = new web3.eth.Contract(DaiContractABI,DaiContractAddress);
     
 const yDaiContract = new web3.eth.Contract(YDaiContractABI,yDaiContractAddress);
 
-const unlockedAddress = "0x3B15CEc2d922Ab0Ef74688bcC1056461049f89CB";
+const unlockedAddress = "0xEfB826Ab5D566DB9d5Af50e17B0cEc5A60c18AA3";
 
 
 //  Approve a smart contract address or normal address to spend on behalf of the owner
@@ -88,7 +88,7 @@ contract("XendFinanceIndividual_Yearn_V1", () => {
   let contractInstance = null;
   let cycleContract = null;
   let groupsContract = null;
-  let xendTokenContract = null;
+  let rewardBridge = null;
   let daiLendingService = null;
   let rewardConfigContract = null;
   let clientRecordContract = null;
@@ -100,7 +100,7 @@ contract("XendFinanceIndividual_Yearn_V1", () => {
 
     clientRecordContract = await ClientRecordContract.deployed();
     savingsConfigContract =  await SavingsConfigContract.deployed();
-    xendTokenContract = await XendTokenContract.deployed();
+    rewardBridge = await RewardBridgeContract.new('0x4a080377f83d669d7bb83b3184a8a5e61b500608');
     daiLendingService  = await DaiLendingServiceContract.deployed();  
     contractInstance = await XendFinanceIndividual_Yearn_V1.deployed();
     daiLendingAdapter = await DaiLendingAdapterContract.deployed(daiLendingService.address);
@@ -113,55 +113,18 @@ contract("XendFinanceIndividual_Yearn_V1", () => {
     await clientRecordContract.activateStorageOracle(contractInstance.address);
     await groupsContract.activateStorageOracle(contractInstance.address);
     await cycleContract.activateStorageOracle(contractInstance.address);
+    await rewardBridge.grantAccess(contractInstance.address);
 
+    let accounts = await web3.eth.getAccounts();
+    account1 = accounts[0];
+    account2 = accounts[1];
+    account3 = accounts[2];
 
-      //  Get the addresses and Balances of at least 2 accounts to be used in the test
-            //  Send DAI to the addresses
-            web3.eth.getAccounts().then(function(accounts){
+    var amountToSend = BigInt(10000000000000000000); //   10 Dai
 
-              account1 = accounts[0];
-              account2 = accounts[1];
-              account3 = accounts[2];
-
-              //  send money from the unlocked dai address to accounts 1 and 2
-              var amountToSend = BigInt(1000000000000000000000); //   10,000 Dai
-
-              //  get the eth balance of the accounts
-              web3.eth.getBalance(account1, function(err, result) {
-                  if (err) {
-                      console.log(err)
-                  } else {
-
-                      account1Balance = web3.utils.fromWei(result, "ether");
-                      console.log("Account 1: "+ accounts[0] + "  Balance: " + account1Balance + " ETH");
-                      sendDai(amountToSend,account1);
-
-                  }
-              });
-
-              web3.eth.getBalance(account2, function(err, result) {
-                  if (err) {
-                      console.log(err)
-                  } else {
-                      account2Balance = web3.utils.fromWei(result, "ether");
-                      console.log("Account 2: "+ accounts[1] + "  Balance: " + account2Balance + " ETH");
-                      sendDai(amountToSend,account2);
-
-                  }
-              });
-
-              web3.eth.getBalance(account3, function(err, result) {
-                  if (err) {
-                      console.log(err)
-                  } else {
-                      account3Balance = web3.utils.fromWei(result, "ether");
-                      console.log("Account 3: "+ accounts[2] + "  Balance: " + account3Balance + " ETH");
-                      sendDai(amountToSend,account3);
-
-                  }
-              });
-          });
-
+    await sendDai(amountToSend,account1);
+    await sendDai(amountToSend,account2);
+    await sendDai(amountToSend,account3);     
   });
 
 
@@ -188,9 +151,9 @@ contract("XendFinanceIndividual_Yearn_V1", () => {
    it("should deposit and withdraw", async () => {
 
       //  Give allowance to the xend finance individual to spend DAI on behalf of account 1 and 2
-        var approvedAmountToSpend = BigInt(1000000000000000000000); //   1,000 Dai
+        var approvedAmountToSpend = BigInt(10000000000000000000); //   10 Dai
 
-        let amountToWithdraw = BigInt(100000000000000000000);
+        let amountToWithdraw = BigInt(5000000000000000000);
       
         await approveDai(contractInstance.address, account1, approvedAmountToSpend);
 
@@ -206,6 +169,32 @@ contract("XendFinanceIndividual_Yearn_V1", () => {
 
 
    })
+
+   it("should deposit and withdraw in fixed deposit", async () => {
+
+    //  Give allowance to the xend finance individual to spend DAI on behalf of account 1 and 2
+      var approvedAmountToSpend = BigInt(10000000000000000000); //   1,000 Dai
+
+    
+      await approveDai(contractInstance.address, account1, approvedAmountToSpend);
+
+
+      let lockPeriodInSeconds  = "1"
+
+      await contractInstance.setMinimumLockPeriod(lockPeriodInSeconds);
+ 
+      await contractInstance.FixedDeposit(lockPeriodInSeconds);
+
+      const waitTime = (seconds) => new Promise(resolve => setTimeout(resolve, seconds * 1000));
+
+      await waitTime(10);
+
+      let withdrawResult = await contractInstance.WithdrawFromFixedDeposit("1");
+
+      assert(withdrawResult.receipt.status == true, "tx receipt status is true")
+
+
+ })
 
 
 });

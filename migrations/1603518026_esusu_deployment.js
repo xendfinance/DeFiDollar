@@ -11,7 +11,8 @@ const XendFinanceIndividual_Yearn_V1Contract = artifacts.require(
   "XendFinanceIndividual_Yearn_V1"
 );
 const XendFinanceGroup_Yearn_V1Contract = artifacts.require('XendFinanceGroup_Yearn_V1')
-const XendTokenContract = artifacts.require('XendToken');
+const RewardBridgeContract = artifacts.require('RewardBridge');
+
 const EsusuServiceContract = artifacts.require('EsusuService');
 const RewardConfigContract = artifacts.require('RewardConfig');
 const EsusuAdapterContract = artifacts.require('EsusuAdapter');
@@ -19,8 +20,8 @@ const EsusuAdapterWithdrawalDelegateContract = artifacts.require('EsusuAdapterWi
 const EsusuStorageContract = artifacts.require('EsusuStorage');
 const XendFinanceGroup_Yearn_V1Helpers  = artifacts.require("XendFinanceGroup_Yearn_V1Helpers");
 
-const StakedTokenContractAddress = "0x5BC25f649fc4e26069dDF4cF4010F9f706c23831";  // This is a custom BUSD for ForTube, you will not find it on BSC Faucet
-const DerivativeTokenContractAddress = "0x42600c4f6d84Aa4D246a3957994da411FA8A4E1c";  // This is the FToken shares a user will receive when they deposit BUSD
+const StakedTokenContractAddress = "0xe9e7cea3dedca5984780bafc599bd69add087d56";  // This is a custom BUSD for ForTube, you will not find it on BSC Faucet
+const DerivativeTokenContractAddress = "0x4eac4c4e9050464067d673102f8e24b2fcceb350";  // This is the FToken shares a user will receive when they deposit BUSD
 
 
 
@@ -45,13 +46,13 @@ module.exports = function (deployer) {
 
      await deployer.deploy(DUSDLendingAdapterContract,DUSDLendingServiceContract.address);
 
-     await deployer.deploy(XendTokenContract, "Xend Token", "$XEND","18","200000000000000000000000000");
 
      await deployer.deploy(EsusuServiceContract);
 
      await deployer.deploy(RewardConfigContract,EsusuServiceContract.address, GroupsContract.address);
 
      await deployer.deploy(EsusuStorageContract);
+     await deployer.deploy(RewardBridgeContract,'0x4a080377f83d669d7bb83b3184a8a5e61b500608');
 
     //  address payable serviceContract, address esusuStorageContract, address esusuAdapterContract,
     //                 string memory feeRuleKey, address treasuryContract, address rewardConfigContract, address xendTokenContract
@@ -68,7 +69,7 @@ module.exports = function (deployer) {
                               "esusufee",
                               TreasuryContract.address,
                               RewardConfigContract.address,
-                              XendTokenContract.address,
+                              RewardBridgeContract.address,
                               SavingsConfigContract.address);
 
                               await deployer.deploy(XendFinanceGroup_Yearn_V1Helpers,                               
@@ -86,7 +87,7 @@ module.exports = function (deployer) {
                                 DerivativeTokenContractAddress,
                                 RewardConfigContract.address,
                                 TreasuryContract.address,
-                                XendTokenContract.address
+                                RewardBridgeContract.address
                               );
 
                               await deployer.deploy(XendFinanceGroup_Yearn_V1Contract, 
@@ -97,7 +98,7 @@ module.exports = function (deployer) {
                                 TreasuryContract.address,
                                 SavingsConfigContract.address,
                                 RewardConfigContract.address,
-                                XendTokenContract.address,
+                                RewardBridgeContract.address,
                                 DerivativeTokenContractAddress,
                                 XendFinanceGroup_Yearn_V1Helpers.address
                                 )
@@ -114,7 +115,8 @@ module.exports = function (deployer) {
 
      console.log("DUSDLendingAdapterContract Contract address: "+DUSDLendingAdapterContract.address );
 
-     console.log("XendToken Contract address: "+XendTokenContract.address );
+     console.log("XendToken Contract address: "+RewardBridgeContract.address );
+
 
      console.log("EsusuService Contract address: "+EsusuServiceContract.address );
 
@@ -132,53 +134,23 @@ module.exports = function (deployer) {
      console.log("Xend finance group contract", XendFinanceGroup_Yearn_V1Contract.address)
 
 
-     let dusdLendingAdapterContract = null;
-     let dusdLendingService = null;
+
      let savingsConfigContract = null;
-     let esusuAdapterContract = null;
-     let esusuServiceContract = null;
-     let groupsContract = null;
-     let xendTokenContract = null;
-     let esusuAdapterWithdrawalDelegateContract = null;
-     let esusuStorageContract = null;
-     let rewardConfigContract = null;
+    
 
      savingsConfigContract = await SavingsConfigContract.deployed();
-     dusdLendingAdapterContract = await DUSDLendingAdapterContract.deployed();
-     dusdLendingService = await DUSDLendingServiceContract.deployed();
-     esusuAdapterContract = await EsusuAdapterContract.deployed();
-     esusuServiceContract = await EsusuServiceContract.deployed();
-     groupsContract = await GroupsContract.deployed();
-     xendTokenContract = await XendTokenContract.deployed();
-     esusuAdapterWithdrawalDelegateContract = await EsusuAdapterWithdrawalDelegateContract.deployed();
-     esusuStorageContract = await EsusuStorageContract.deployed();
-     rewardConfigContract = await RewardConfigContract.deployed();
+  
    
-     await savingsConfigContract.createRule(
-       "XEND_FINANCE_COMMISION_DIVISOR",
-       0,
-       0,
-       100,
-       1
-     );
- 
-     await savingsConfigContract.createRule(
-       "XEND_FINANCE_COMMISION_DIVIDEND",
-       0,
-       0,
-       1,
-       1
-     );
- 
-     await savingsConfigContract.createRule(
-       "PERCENTAGE_PAYOUT_TO_USERS",
-       0,
-       0,
-       0,
-       1
-     );
- 
-     await savingsConfigContract.createRule("PERCENTAGE_AS_PENALTY", 0, 0, 1, 1);
+    
+    await savingsConfigContract.createRule("XEND_FEE_PRECISION",0,0,100,1);
+
+    await savingsConfigContract.createRule("PERCENTAGE_AS_PENALTY",0,0,10,1);
+
+    await savingsConfigContract.createRule("PERCENTAGE_PAYOUT_TO_USERS",0,0,150,1);
+
+    await savingsConfigContract.createRule("XEND_FINANCE_COMMISION_DIVIDEND",0,0,200,1);
+    await savingsConfigContract.createRule("XEND_FINANCE_COMMISION_FLEXIBLE_DIVIDEND",0,0,1,1);
+
 
  
   })

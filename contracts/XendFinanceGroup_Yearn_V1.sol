@@ -65,10 +65,7 @@ contract XendFinanceGroup_Yearn_V1 is
         _groupCreatorRewardPercent = percent;
     }
 
-    function UpdateFeePrecision(uint256 feePrecision) external onlyOwner {
-        _feePrecision = feePrecision;
-    }  
-
+   
     function setXendFinanceGroupHelpersAddress(address xendFinanceGroupHelpersAddress) external onlyOwner {
         xendFinanceGroupHelpers = IXendFinanceGroup_Yearn_V1Helpers(xendFinanceGroupHelpersAddress);
     }
@@ -204,6 +201,7 @@ contract XendFinanceGroup_Yearn_V1 is
         );
 
 
+
         bool isSuccessful = stakedToken.approve(
             daiLendingService.GetDUSDLendingAdapterAddress(),
             amountToDeductFromClient
@@ -215,6 +213,7 @@ contract XendFinanceGroup_Yearn_V1 is
         uint256 balanceBeforeDeposit = derivativeToken.balanceOf(address(this));
 
         daiLendingService.Save(amountToDeductFromClient);
+
 
         uint256 balanceAfterDeposit = derivativeToken.balanceOf(address(this));
 
@@ -386,7 +385,6 @@ contract XendFinanceGroup_Yearn_V1 is
 
     
 
-        //uint256 membersDeposit = cycleFinancial.derivativeBalance.div(cycle.numberOfDepositors);
 
         uint256 initialUnderlyingDepositByMember =
             cycleMember.numberOfCycleStakes.mul(cycle.cycleStakeAmount);
@@ -396,11 +394,7 @@ contract XendFinanceGroup_Yearn_V1 is
             _computeAmountToChargeAsPenalites(
                 underlyingAmountThatMemberDepositIsWorth
             );
-
-        //deduct xend finance fees
-        // uint256 amountToChargeAsFees = _computeXendFinanceCommisions(
-        //     underlyingAmountThatMemberDepositIsWorth
-        // );
+      
 
         underlyingAmountThatMemberDepositIsWorth  = underlyingAmountThatMemberDepositIsWorth.sub(amountToChargeAsPenalites);
 
@@ -581,11 +575,11 @@ contract XendFinanceGroup_Yearn_V1 is
         //deduct xend finance fees
         uint256 amountToChargeAsFees =
             _computeXendFinanceCommisions(
-                underlyingAmountThatMemberDepositIsWorth
+                underlyingAmountThatMemberDepositIsWorth, initialUnderlyingDepositByMember
             );
         uint256 creatorReward =
             amountToChargeAsFees.mul(_groupCreatorRewardPercent).div(
-                _feePrecision.mul(100)
+                _getFeePrecision().mul(100)
             );
 
         uint256 finalAmountToChargeAsFees =
@@ -732,40 +726,38 @@ contract XendFinanceGroup_Yearn_V1 is
         return amountToChargeAsPenalites;
     }
 
-    function _computeXendFinanceCommisions(uint256 worthOfMemberDepositNow)
+   function _computeXendFinanceCommisions(uint256 worthOfMemberDepositNow, uint256 initialAmountDeposited)
         internal
         returns (uint256)
     {
         uint256 dividend = _getDividend();
-        uint256 divisor = _getDivisor();
+        uint256 feePrecision = _getFeePrecision();
 
         require(
             worthOfMemberDepositNow > 0,
             "member deposit really isn't worth much"
         );
 
-        return worthOfMemberDepositNow.mul(dividend).div(divisor);
+        if(worthOfMemberDepositNow>initialAmountDeposited){
+            uint256 profit = worthOfMemberDepositNow.sub(initialAmountDeposited);
+            return ((profit.mul(dividend)).div(feePrecision)).div(100);
+        }
+        else{
+            return 0;
+        }
+
     }
 
-    function _getDivisor() internal returns (uint256) {
-        (
-            uint256 minimumDivisor,
-            uint256 maximumDivisor,
-            uint256 exactDivisor,
-            bool appliesDivisor,
-            RuleDefinition ruleDefinitionDivisor
-        ) = savingsConfig.getRuleSet(XEND_FINANCE_COMMISION_DIVISOR);
+    function _getFeePrecision() internal returns (uint256) {
+        (,,uint256 feePrecision,bool appliesDividend,RuleDefinition ruleDefinition) = savingsConfig.getRuleSet(XEND_FEE_PRECISION);
+
+        require(appliesDividend, "unsupported rule defintion for rule set");
 
         require(
-            appliesDivisor == true,
-            "unsupported rule defintion for rule set"
+            ruleDefinition == RuleDefinition.VALUE,
+            "unsupported rule defintion for fee precision"
         );
-
-        require(
-            ruleDefinitionDivisor == RuleDefinition.VALUE,
-            "unsupported rule defintion for penalty percentage rule set"
-        );
-        return exactDivisor;
+        return feePrecision;
     }
 
     function _getDividend() internal returns (uint256) {
